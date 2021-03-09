@@ -8,32 +8,41 @@ namespace ServerCore
 
     class Program
     {
-        int _answer;
-        bool _complete;
+        static volatile int number = 0;
 
-        void A()
+        static void Thread_1()
         {
-            _answer = 123;
-            Thread.MemoryBarrier(); //Barrier 1
-            _complete = true;
-            Thread.MemoryBarrier(); // Barrier 2
-        }
 
-        void B()
-        {
-            Thread.MemoryBarrier(); // Barrier 3
-            if(_complete)
+            // atomic = 원자성 --> 지켜지지 않으면 아이템 복사가 일어난다.
+
+            // 집행검 User 2 인벤에 넣어라 - OK
+            // 집행검 User 1 인벤에서 없애라 - fail
+
+            for (int i = 0; i < 100000; i++)
             {
-                Thread.MemoryBarrier(); // Barrier 4
-                Console.WriteLine(_answer);
+                // All or Nothing
+                Interlocked.Increment(ref number);
+            }
+        }
+        static void Thread_2()
+        {
+            for (int i = 0; i < 100000; i++)
+            {
+                Interlocked.Decrement(ref number);
             }
         }
 
-
         static void Main(string[] args)
         {
-           
-          
+            Task t1 = new Task(Thread_1);
+            Task t2 = new Task(Thread_2);
+            t1.Start();
+            t2.Start();
+
+            Task.WaitAll(t1, t2);
+
+            Console.WriteLine(number);
+
 
         }
     }
