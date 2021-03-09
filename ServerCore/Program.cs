@@ -6,44 +6,26 @@ namespace ServerCore
 {
     class Program
     {
-        static void MainThread(object state)
-        {
-            for (int i =0; i<5; i++)
-                Console.WriteLine("Hello Thread!");
-        }
         static void Main(string[] args)
         {
-
-            ThreadPool.SetMinThreads(1, 1);
-            ThreadPool.SetMaxThreads(5, 5);
-            for (int i = 0; i < 5; i++)
+            int[,] arr = new int[10000, 10000]; // 2차 배열
             {
-                Task t = new Task(() => { while (true) { } }, TaskCreationOptions.LongRunning );
-                t.Start();
+                long now = DateTime.Now.Ticks;
+                for (int y = 0; y < 10000; y++)
+                    for (int x = 0; x < 10000; x++)
+                        arr[y, x] = 1;
+                long end = DateTime.Now.Ticks;
+                Console.WriteLine($"(y,x) 순서 걸린 시간 {end-now}");
+            }
+            {
+                long now = DateTime.Now.Ticks;
+                for (int y = 0; y < 10000; y++)
+                    for (int x = 0; x < 10000; x++)
+                        arr[x, y] = 1;
+                long end = DateTime.Now.Ticks;
+                Console.WriteLine($"(x,y) 순서 걸린 시간 {end - now}");
             }
 
-            //for (int i = 0; i < 5; i++)
-              //  ThreadPool.QueueUserWorkItem((obj) => { while (true) { } });
-            
-            ThreadPool.QueueUserWorkItem(MainThread);
-
-            //for (int i = 0; i < 1000; i++)
-            //{
-
-            //    Thread t = new Thread(MainThread);
-            //    t.Name = "Test Thread";
-            //    //t.IsBackground = true;
-            //    t.Start();
-            //}
-            
-            //Console.WriteLine("Waiting for Thread!");
-
-            //t.Join();
-            //Console.WriteLine("Hello World!");
-            while (true)
-            {
-
-            }
         }
     }
 }
