@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,29 +9,54 @@ namespace ServerCore
 {
     class Program
     {
+        static Listener _listener = new Listener();
 
-        static ThreadLocal<string> ThreadName = new ThreadLocal<string>(()=> { return $"My Name Is {Thread.CurrentThread.ManagedThreadId}"; });
-
-        static void WhoAmI()
+        static void OnAcceptHandler(Socket clientSocket)
         {
-            //ThreadName.Value = $"My Name Is {Thread.CurrentThread.ManagedThreadId}";
-            bool repeat = ThreadName.IsValueCreated;
-            if(repeat)
-                Console.WriteLine(ThreadName.Value + "(repeat)");
-            else
-                Console.WriteLine(ThreadName.Value);
+            try
+            {
+                // 받는다.
+                byte[] recvBuff = new byte[1024];
+                int recvBytes = clientSocket.Receive(recvBuff);
+                string recvData = Encoding.UTF8.GetString(recvBuff, 0, recvBytes);
+                Console.WriteLine($"[From client] {recvData}");
 
-            Thread.Sleep(1000);
+                // 보낸다.
+                byte[] sendBuff = Encoding.UTF8.GetBytes("Welcome to MMORPG Server !");
+                clientSocket.Send(sendBuff);
 
-            Console.WriteLine(ThreadName.Value);
+                // 쫓아낸다.
+                clientSocket.Shutdown(SocketShutdown.Both);
+                clientSocket.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+
+            
         }
         static void Main(string[] args)
         {
-            ThreadPool.SetMinThreads(1, 1);
-            ThreadPool.SetMaxThreads(3, 3);
-            Parallel.Invoke(WhoAmI, WhoAmI, WhoAmI, WhoAmI, WhoAmI, WhoAmI);
+            // DNS(Domain Name System)
+            string host = Dns.GetHostName();
+            IPHostEntry ipHost =  Dns.GetHostEntry(host);
+            IPAddress ipAddr = ipHost.AddressList[0];
+            IPEndPoint endPoint = new IPEndPoint(ipAddr, 7777);
 
-            ThreadName.Dispose();
+            
+            
+            _listener.Init(endPoint, OnAcceptHandler);
+            Console.WriteLine("Listening...");
+            while (true)
+            {
+                ;
+                   
+            }
+            
+           
+            
         }
     }
 }
