@@ -10,18 +10,22 @@ namespace ServerCore
 	{
 		Func<Session> _sessionFactory;
 
-		public void Connect(IPEndPoint endPoint, Func<Session> sessionFactory)
+		public void Connect(IPEndPoint endPoint, Func<Session> sessionFactory, int count =1)
 		{
-			// 휴대폰 설정
-			Socket socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-			_sessionFactory = sessionFactory;
+			for (int i=0; i<count; i++)
+            {
 
-			SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-			args.Completed += OnConnectCompleted;
-			args.RemoteEndPoint = endPoint;
-			args.UserToken = socket;
+				// 휴대폰 설정
+				Socket socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+				_sessionFactory = sessionFactory;
 
-			RegisterConnect(args);
+				SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+				args.Completed += OnConnectCompleted;
+				args.RemoteEndPoint = endPoint;
+				args.UserToken = socket;
+
+				RegisterConnect(args);
+            }
 		}
 
 		void RegisterConnect(SocketAsyncEventArgs args)
